@@ -1,9 +1,30 @@
 import database from "infra/database.js";
 
 async function status(req, res) {
-  const result = await database.query("SELECT 1 + 1 as sum");
-  console.log(result.rows);
-  res.status(200).json({ status: "ok" });
+  const updatedAt = new Date().toISOString();
+
+  const svResult = await database.query("SHOW server_version;");
+  const dbVersion = svResult.rows[0].server_version;
+
+  const mcResult = await database.query("SHOW max_connections;");
+  const dbMaxConnections = Number(mcResult.rows[0].max_connections);
+
+  const ocResult = await database.query({
+    text: "SELECT count(*)::int FROM pg_stat_activity WHERE datname = $1;",
+    values: [process.env.POSTGRES_DB],
+  });
+  const dbOpenedConnections = ocResult.rows[0].count;
+
+  res.status(200).json({
+    updated_at: updatedAt,
+    dependencies: {
+      database: {
+        max_connections: dbMaxConnections,
+        opened_connections: dbOpenedConnections,
+        version: dbVersion,
+      },
+    },
+  });
 }
 
 export default status;
