@@ -1,5 +1,4 @@
 import migrationsRunner from "node-pg-migrate";
-import { request } from "node:http";
 import { join } from "node:path";
 import database from "infra/database";
 
