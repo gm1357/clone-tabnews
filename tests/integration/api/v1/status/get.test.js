@@ -1,3 +1,9 @@
+import orchestrator from "tests/orchestrator";
+
+beforeAll(async () => {
+  await orchestrator.waitForAllServices();
+});
+
 test("GET /api/status returns status ok", async () => {
   const res = await fetch("http://localhost:3000/api/v1/status");
   const responseBody = await res.json();
