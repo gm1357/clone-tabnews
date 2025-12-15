@@ -10,44 +10,32 @@ describe("GET /api/users/[username]", () => {
   describe("Anonymous user", () => {
     test("With exact case match", async () => {
       const username = "same_case";
-      const newUser = {
+
+      const createdUser = await orchestrator.createUser({
         username,
         email: "test@email.com",
         password: "pass123",
-      };
-
-      const postRes = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser),
       });
-      const createdUser = await postRes.json();
 
       const res = await fetch(`http://localhost:3000/api/v1/users/${username}`);
       const responseBody = await res.json();
 
       expect(res.status).toBe(200);
-      expect(responseBody).toEqual(createdUser);
+      expect(responseBody).toEqual({
+        ...createdUser,
+        created_at: createdUser.created_at.toISOString(),
+        updated_at: createdUser.updated_at.toISOString(),
+      });
     });
 
     test("With case mismatch", async () => {
       const username = "MismatchCase";
-      const newUser = {
+
+      const createdUser = await orchestrator.createUser({
         username,
         email: "test2@email.com",
         password: "pass123",
-      };
-
-      const postRes = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser),
       });
-      const createdUser = await postRes.json();
 
       const res = await fetch(
         `http://localhost:3000/api/v1/users/${username.toLowerCase()}`,
@@ -55,7 +43,11 @@ describe("GET /api/users/[username]", () => {
       const responseBody = await res.json();
 
       expect(res.status).toBe(200);
-      expect(responseBody).toEqual(createdUser);
+      expect(responseBody).toEqual({
+        ...createdUser,
+        created_at: createdUser.created_at.toISOString(),
+        updated_at: createdUser.updated_at.toISOString(),
+      });
     });
 
     test("With nonexistent username", async () => {
