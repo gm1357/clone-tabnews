@@ -17,6 +17,7 @@ async function getHandler(req, res) {
 
   const userFound = await user.findOneById(sessionObject.user_id);
   controller.setSessionCookie(res, sessionObject.token);
+  controller.forceIgnoreCache(res);
 
   return res.status(200).json(userFound);
 }
