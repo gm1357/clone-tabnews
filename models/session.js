@@ -87,10 +87,35 @@ async function renewal(id) {
   }
 }
 
+async function expireById(id) {
+  const expiredSession = await runUpdateQuery(id);
+  return expiredSession;
+
+  async function runUpdateQuery(id) {
+    const results = await database.query({
+      text: `
+        UPDATE
+          sessions
+        SET
+          expires_at = expires_at - interval '1 year',
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+        RETURNING
+          *
+      ;`,
+      values: [id],
+    });
+
+    return results.rows[0];
+  }
+}
+
 const session = {
   create,
   findOneValidByToken,
   renewal,
+  expireById,
   EXPIRATION_IN_MILLISECONDS,
 };
 
