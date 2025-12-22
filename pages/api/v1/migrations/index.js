@@ -1,5 +1,5 @@
 import { createRouter } from "next-connect";
-import { errorHandlers } from "infra/controller";
+import controller from "infra/controller";
 import { listPendingMigrations, runPendingMigrations } from "models/migrator";
 
 const router = createRouter();
@@ -7,7 +7,7 @@ const router = createRouter();
 router.get(getHandler);
 router.post(postHandler);
 
-export default router.handler(errorHandlers);
+export default router.handler(controller.errorHandlers);
 
 async function getHandler(req, res) {
   const pendingMigrations = await listPendingMigrations();

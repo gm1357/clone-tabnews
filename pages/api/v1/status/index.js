@@ -1,12 +1,12 @@
 import { createRouter } from "next-connect";
 import database from "infra/database.js";
-import { errorHandlers } from "infra/controller";
+import controller from "infra/controller";
 
 const router = createRouter();
 
 router.get(getHandler);
 
-export default router.handler(errorHandlers);
+export default router.handler(controller.errorHandlers);
 
 async function getHandler(req, res) {
   const updatedAt = new Date().toISOString();
