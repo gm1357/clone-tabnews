@@ -1,12 +1,12 @@
 import { createRouter } from "next-connect";
-import { errorHandlers } from "infra/controller";
+import controller from "infra/controller";
 import user from "models/user.js";
 
 const router = createRouter();
 
 router.post(postHandler);
 
-export default router.handler(errorHandlers);
+export default router.handler(controller.errorHandlers);
 
 async function postHandler(req, res) {
   const userInputValues = req.body;
