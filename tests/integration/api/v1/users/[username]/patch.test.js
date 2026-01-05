@@ -200,6 +200,7 @@ describe("GET /api/users/[username]", () => {
         ...createdUser,
         id: patchResponseBody.id,
         password: patchResponseBody.password,
+        features: [],
         created_at: patchResponseBody.created_at,
         updated_at: patchResponseBody.updated_at,
       });
