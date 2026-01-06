@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker/.";
 import retry from "async-retry";
 import database from "infra/database";
+import activation from "models/activation";
 import { runPendingMigrations as migratorRunPendingMigrations } from "models/migrator";
 import session from "models/session";
 import user from "models/user";
@@ -97,6 +98,10 @@ function extractUUID4(text) {
   return token?.[0] ?? null;
 }
 
+async function activateUser(user) {
+  return await activation.activateUserById(user.id);
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -106,6 +111,7 @@ const orchestrator = {
   deleteAllEmails,
   getLastEmail,
   extractUUID4,
+  activateUser,
 };
 
 export default orchestrator;

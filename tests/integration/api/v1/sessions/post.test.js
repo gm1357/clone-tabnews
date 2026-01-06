@@ -68,7 +68,7 @@ describe("POST /api/v1/sessions", () => {
       });
     });
 
-    test("With incorrect email and  incorrect password", async () => {
+    test("With incorrect email and incorrect password", async () => {
       await orchestrator.createUser({
         email: "email@test.com",
         password: "password",
@@ -97,11 +97,13 @@ describe("POST /api/v1/sessions", () => {
       });
     });
 
-    test("With correct email and  correct password", async () => {
+    test("With correct email and correct password", async () => {
       const createdUser = await orchestrator.createUser({
         email: "all.correct@test.com",
         password: "correct-password",
       });
+
+      await orchestrator.activateUser(createdUser);
 
       const res = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",
