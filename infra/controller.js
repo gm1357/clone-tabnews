@@ -1,5 +1,6 @@
 import * as cookie from "cookie";
 import session from "models/session";
+import user from "models/user";
 
 const {
   MethodNotAllowedError,
@@ -7,6 +8,7 @@ const {
   ValidationError,
   NotFoundError,
   UnauthorizedError,
+  ForbiddenError,
 } = require("./errors");
 
 function onNoMatchHandler(req, res) {
@@ -15,7 +17,11 @@ function onNoMatchHandler(req, res) {
 }
 
 function onErrorHandler(err, req, res) {
-  if (err instanceof ValidationError || err instanceof NotFoundError) {
+  if (
+    err instanceof ValidationError ||
+    err instanceof NotFoundError ||
+    err instanceof ForbiddenError
+  ) {
     return res.status(err.statusCode).json(err);
   }
 
@@ -58,6 +64,51 @@ function forceIgnoreCache(res) {
   );
 }
 
+async function injectAnonymousOrUser(req, res, next) {
+  if (req.cookies?.session_id) {
+    await injectAuthenticatedUser(req);
+    return next();
+  }
+
+  injectAnonymousUser(req);
+  return next();
+}
+
+async function injectAuthenticatedUser(req) {
+  const sessionToken = req.cookies.session_id;
+  const sessionObject = await session.findOneValidByToken(sessionToken);
+  const userObject = await user.findOneById(sessionObject.user_id);
+
+  req.context = {
+    ...req.context,
+    user: userObject,
+  };
+}
+
+function injectAnonymousUser(req) {
+  req.context = {
+    ...req.context,
+    user: {
+      features: ["read:activation_token", "create:session", "create:user"],
+    },
+  };
+}
+
+function canRequest(feature) {
+  return (req, res, next) => {
+    const userTryingToRequest = req.context.user;
+
+    if (userTryingToRequest.features.includes(feature)) {
+      return next();
+    }
+
+    throw new ForbiddenError({
+      message: "You don't have permission to execute this action",
+      action: `Check if your user has the feature "${feature}"`,
+    });
+  };
+}
+
 const controller = {
   errorHandlers: {
     onNoMatch: onNoMatchHandler,
@@ -66,6 +117,8 @@ const controller = {
   setSessionCookie,
   clearSessionCookie,
   forceIgnoreCache,
+  injectAnonymousOrUser,
+  canRequest,
 };
 
 export default controller;

@@ -14,6 +14,8 @@ describe("Use case: Registration Flow (all successful)", () => {
   let createdUser;
   let activationToken;
   const TEST_USER_USERNAME = "registration_test";
+  const TEST_USER_EMAIL = "registration_test@email.com";
+  const TEST_USER_PASSWORD = "pass123";
 
   test("Create user account", async () => {
     const res = await fetch("http://localhost:3000/api/v1/users", {
@@ -23,8 +25,8 @@ describe("Use case: Registration Flow (all successful)", () => {
       },
       body: JSON.stringify({
         username: TEST_USER_USERNAME,
-        email: "registration_test@email.com",
-        password: "pass123",
+        email: TEST_USER_EMAIL,
+        password: TEST_USER_PASSWORD,
       }),
     });
     createdUser = await res.json();
@@ -32,7 +34,7 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(res.status).toBe(201);
     expect(createdUser).toEqual({
       username: TEST_USER_USERNAME,
-      email: "registration_test@email.com",
+      email: TEST_USER_EMAIL,
       id: createdUser.id,
       password: createdUser.password,
       features: ["read:activation_token"],
@@ -79,7 +81,27 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(activatedUser.features).toEqual(["create:session"]);
   });
 
-  test("Login", async () => {});
+  test("Login", async () => {
+    const createSessionsResponse = await fetch(
+      `${webserver.origin}/api/v1/sessions`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: TEST_USER_EMAIL,
+          password: TEST_USER_PASSWORD,
+        }),
+      },
+    );
+
+    expect(createSessionsResponse.status).toBe(201);
+
+    const responseBody = await createSessionsResponse.json();
+
+    expect(responseBody.user_id).toEqual(createdUser.id);
+  });
 
   test("Get user information", async () => {});
 });
