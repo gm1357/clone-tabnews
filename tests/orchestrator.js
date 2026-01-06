@@ -89,6 +89,14 @@ async function getLastEmail() {
   };
 }
 
+function extractUUID4(text) {
+  const uuid4regex =
+    /[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/;
+  const token = text.match(uuid4regex);
+
+  return token?.[0] ?? null;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -97,6 +105,7 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID4,
 };
 
 export default orchestrator;

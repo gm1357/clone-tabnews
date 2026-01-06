@@ -1,9 +1,42 @@
 import database from "infra/database";
 import email from "infra/email";
-import { NotFoundError } from "infra/errors";
+import { UnauthorizedError } from "infra/errors";
 import webserver from "infra/webserver";
 
 const EXPIRATION_IN_MILLISECONDS = 15 * 60 * 1000;
+
+async function findOneValidById(id) {
+  const activationToken = await runSelectQuery(id);
+
+  return activationToken;
+
+  async function runSelectQuery(id) {
+    const results = await database.query({
+      text: `
+        SELECT
+          *
+        FROM
+          user_activation_tokens
+        WHERE
+          id = $1
+          AND expires_at > NOW()
+          AND used_at IS NULL
+        LIMIT
+          1
+      ;`,
+      values: [id],
+    });
+
+    if (results.rowCount === 0) {
+      throw new UnauthorizedError({
+        message: "Invalid or expired activation token",
+        action: "Verify if the token still valid and try again",
+      });
+    }
+
+    return results.rows[0];
+  }
+}
 
 async function create(userId) {
   const expiresAt = new Date(Date.now() + EXPIRATION_IN_MILLISECONDS);
@@ -43,41 +76,10 @@ Team CloneTabNews.
   });
 }
 
-async function findOneByUserId(user_id) {
-  const userFound = runSelectQuery(user_id);
-
-  return userFound;
-
-  async function runSelectQuery(user_id) {
-    const results = await database.query({
-      text: `
-        SELECT
-          *
-        FROM
-          user_activation_tokens
-        WHERE
-          user_id = $1
-        LIMIT
-          1
-        ;`,
-      values: [user_id],
-    });
-
-    if (results.rowCount === 0) {
-      throw new NotFoundError({
-        message: "This user id was not found in the system.",
-        action: "Verify if the user id was typed correctly.",
-      });
-    }
-
-    return results.rows[0];
-  }
-}
-
 const activation = {
   create,
   sendEmailToUser,
-  findOneByUserId,
+  findOneValidById,
 };
 
 export default activation;

@@ -1,3 +1,4 @@
+import webserver from "infra/webserver";
 import activation from "models/activation";
 import orchestrator from "tests/orchestrator";
 
@@ -45,9 +46,16 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(lastEmail.subject).toBe("Activate your account on Clone Tabnews!");
     expect(lastEmail.text).toContain("registration_test");
 
-    const activationToken = await activation.findOneByUserId(createdUser.id);
+    const activationToken = orchestrator.extractUUID4(lastEmail.text);
 
-    expect(lastEmail.text).toContain(activationToken.id);
+    expect(lastEmail.text).toContain(
+      `${webserver.origin}/signup/activate/${activationToken}`,
+    );
+
+    const validToken = await activation.findOneValidById(activationToken);
+
+    expect(validToken.user_id).toEqual(createdUser.id);
+    expect(validToken.used_at).toBe(null);
   });
 
   test("Activate account", async () => {});
