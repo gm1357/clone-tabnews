@@ -1,5 +1,6 @@
 import webserver from "infra/webserver";
 import activation from "models/activation";
+import user from "models/user";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -11,6 +12,8 @@ beforeAll(async () => {
 
 describe("Use case: Registration Flow (all successful)", () => {
   let createdUser;
+  let activationToken;
+  const TEST_USER_USERNAME = "registration_test";
 
   test("Create user account", async () => {
     const res = await fetch("http://localhost:3000/api/v1/users", {
@@ -19,7 +22,7 @@ describe("Use case: Registration Flow (all successful)", () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: "registration_test",
+        username: TEST_USER_USERNAME,
         email: "registration_test@email.com",
         password: "pass123",
       }),
@@ -28,7 +31,7 @@ describe("Use case: Registration Flow (all successful)", () => {
 
     expect(res.status).toBe(201);
     expect(createdUser).toEqual({
-      username: "registration_test",
+      username: TEST_USER_USERNAME,
       email: "registration_test@email.com",
       id: createdUser.id,
       password: createdUser.password,
@@ -44,9 +47,9 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(lastEmail.sender).toBe("<contact@clonetab.com>");
     expect(lastEmail.recipients[0]).toBe("<registration_test@email.com>");
     expect(lastEmail.subject).toBe("Activate your account on Clone Tabnews!");
-    expect(lastEmail.text).toContain("registration_test");
+    expect(lastEmail.text).toContain(TEST_USER_USERNAME);
 
-    const activationToken = orchestrator.extractUUID4(lastEmail.text);
+    activationToken = orchestrator.extractUUID4(lastEmail.text);
 
     expect(lastEmail.text).toContain(
       `${webserver.origin}/signup/activate/${activationToken}`,
@@ -58,7 +61,23 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(validToken.used_at).toBe(null);
   });
 
-  test("Activate account", async () => {});
+  test("Activate account", async () => {
+    const activateResponse = await fetch(
+      `${webserver.origin}/api/v1/activations/${activationToken}`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    expect(activateResponse.status).toBe(200);
+
+    const responseBody = await activateResponse.json();
+
+    expect(Date.parse(responseBody.used_at)).not.toBeNaN();
+
+    const activatedUser = await user.findOneByUsername(TEST_USER_USERNAME);
+    expect(activatedUser.features).toEqual(["create:session"]);
+  });
 
   test("Login", async () => {});
 

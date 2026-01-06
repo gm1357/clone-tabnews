@@ -2,6 +2,7 @@ import database from "infra/database";
 import email from "infra/email";
 import { UnauthorizedError } from "infra/errors";
 import webserver from "infra/webserver";
+import user from "./user";
 
 const EXPIRATION_IN_MILLISECONDS = 15 * 60 * 1000;
 
@@ -76,10 +77,49 @@ Team CloneTabNews.
   });
 }
 
+async function markTokenAsUsed(id) {
+  const activationToken = await runUpdateQuery(id);
+
+  return activationToken;
+
+  async function runUpdateQuery(id) {
+    const results = await database.query({
+      text: `
+        UPDATE
+          user_activation_tokens
+        SET
+          used_at = timezone('utc', now()),
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+        RETURNING
+          *
+      ;`,
+      values: [id],
+    });
+
+    if (results.rowCount === 0) {
+      throw new UnauthorizedError({
+        message: "Invalid or expired activation token",
+        action: "Verify if the token still valid and try again",
+      });
+    }
+
+    return results.rows[0];
+  }
+}
+
+async function activateUserById(userId) {
+  const activatedUser = await user.setFeatures(userId, ["create:session"]);
+  return activatedUser;
+}
+
 const activation = {
   create,
   sendEmailToUser,
   findOneValidById,
+  markTokenAsUsed,
+  activateUserById,
 };
 
 export default activation;
