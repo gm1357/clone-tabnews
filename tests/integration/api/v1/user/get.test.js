@@ -10,11 +10,27 @@ beforeAll(async () => {
 });
 
 describe("GET /api/user", () => {
+  describe("Anonymous user", () => {
+    test("Retrieving the endpoint", async () => {
+      const res = await fetch("http://localhost:3000/api/v1/user");
+      const resBody = await res.json();
+
+      expect(res.status).toBe(403);
+      expect(resBody).toEqual({
+        action: 'Check if your user has the feature "read:session"',
+        message: "You don't have permission to execute this action",
+        name: "ForbiddenError",
+        status_code: 403,
+      });
+    });
+  });
+
   describe("Default user", () => {
     test("With valid session", async () => {
       const createdUser = await orchestrator.createUser({
         username: "UserWithValidSession",
       });
+      const activatedUser = await orchestrator.activateUser(createdUser);
 
       const createdSession = await orchestrator.createSession(createdUser.id);
 
@@ -38,9 +54,9 @@ describe("GET /api/user", () => {
         username: createdUser.username,
         email: createdUser.email,
         password: createdUser.password,
-        features: ["read:activation_token"],
+        features: ["create:session", "read:session"],
         created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        updated_at: activatedUser.updated_at.toISOString(),
       });
 
       expect(uuidVersion(resBody.id)).toBe(4);
