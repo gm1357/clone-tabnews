@@ -1,8 +1,9 @@
 import database from "infra/database";
 import email from "infra/email";
-import { UnauthorizedError } from "infra/errors";
+import { ForbiddenError, UnauthorizedError } from "infra/errors";
 import webserver from "infra/webserver";
 import user from "./user";
+import authorization from "./authorization";
 
 const EXPIRATION_IN_MILLISECONDS = 15 * 60 * 1000;
 
@@ -110,6 +111,15 @@ async function markTokenAsUsed(id) {
 }
 
 async function activateUserById(userId) {
+  const userToActivate = await user.findOneById(userId);
+
+  if (!authorization.can(userToActivate, "read:activation_token")) {
+    throw new ForbiddenError({
+      message: "You cannot use activation tokens.",
+      action: "Contact support for more information.",
+    });
+  }
+
   const activatedUser = await user.setFeatures(userId, [
     "create:session",
     "read:session",
@@ -118,6 +128,7 @@ async function activateUserById(userId) {
 }
 
 const activation = {
+  EXPIRATION_IN_MILLISECONDS,
   create,
   sendEmailToUser,
   findOneValidById,
