@@ -325,4 +325,46 @@ describe("GET /api/users/[username]", () => {
       expect(incorrectPasswordMatch).toBe(false);
     });
   });
+
+  describe("Privileged user", () => {
+    test("With 'update:user:others' feature targeting default user", async () => {
+      const createdDefaultUser = await orchestrator.createUser();
+
+      const createdPrivilegedUser = await orchestrator.createUser({
+        username: "privilegedUser",
+      });
+      const activatedPrivilegedUser = await orchestrator.activateUser(
+        createdPrivilegedUser,
+      );
+      await orchestrator.addFeaturesToUser(activatedPrivilegedUser, [
+        "update:user:others",
+      ]);
+      const sessionObjectPrivilegedUser = await orchestrator.createSession(
+        activatedPrivilegedUser.id,
+      );
+
+      const patchRes = await fetch(
+        `http://localhost:3000/api/v1/users/${createdDefaultUser.username}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `session_id=${sessionObjectPrivilegedUser.token}`,
+          },
+          body: JSON.stringify({
+            username: "alteredUsername",
+          }),
+        },
+      );
+      const patchResponseBody = await patchRes.json();
+
+      expect(patchRes.status).toBe(200);
+      expect(patchResponseBody).toEqual({
+        ...createdDefaultUser,
+        username: "alteredUsername",
+        created_at: patchResponseBody.created_at,
+        updated_at: patchResponseBody.updated_at,
+      });
+    });
+  });
 });
