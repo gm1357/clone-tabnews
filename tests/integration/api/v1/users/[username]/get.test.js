@@ -22,7 +22,9 @@ describe("GET /api/users/[username]", () => {
 
       expect(res.status).toBe(200);
       expect(responseBody).toEqual({
-        ...createdUser,
+        id: responseBody.id,
+        username,
+        features: ["read:activation_token"],
         created_at: createdUser.created_at.toISOString(),
         updated_at: createdUser.updated_at.toISOString(),
       });
@@ -44,7 +46,9 @@ describe("GET /api/users/[username]", () => {
 
       expect(res.status).toBe(200);
       expect(responseBody).toEqual({
-        ...createdUser,
+        id: responseBody.id,
+        username,
+        features: ["read:activation_token"],
         created_at: createdUser.created_at.toISOString(),
         updated_at: createdUser.updated_at.toISOString(),
       });
