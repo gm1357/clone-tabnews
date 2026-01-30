@@ -211,10 +211,9 @@ describe("GET /api/users/[username]", () => {
 
       expect(patchRes.status).toBe(200);
       expect(patchResponseBody).toEqual({
-        ...activatedUser,
+        features: activatedUser.features,
         username: `${createdUser.username}2`,
         id: patchResponseBody.id,
-        password: patchResponseBody.password,
         created_at: patchResponseBody.created_at,
         updated_at: patchResponseBody.updated_at,
       });
@@ -252,10 +251,9 @@ describe("GET /api/users/[username]", () => {
 
       expect(patchRes.status).toBe(200);
       expect(patchResponseBody).toEqual({
-        ...activatedUser,
-        email: `${createdUser.email}2`,
+        features: activatedUser.features,
+        username: activatedUser.username,
         id: patchResponseBody.id,
-        password: patchResponseBody.password,
         created_at: patchResponseBody.created_at,
         updated_at: patchResponseBody.updated_at,
       });
@@ -296,9 +294,9 @@ describe("GET /api/users/[username]", () => {
 
       expect(patchRes.status).toBe(200);
       expect(patchResponseBody).toEqual({
-        ...activatedUser,
+        features: activatedUser.features,
+        username: activatedUser.username,
         id: patchResponseBody.id,
-        password: patchResponseBody.password,
         created_at: patchResponseBody.created_at,
         updated_at: patchResponseBody.updated_at,
       });
@@ -360,7 +358,8 @@ describe("GET /api/users/[username]", () => {
 
       expect(patchRes.status).toBe(200);
       expect(patchResponseBody).toEqual({
-        ...createdDefaultUser,
+        id: patchResponseBody.id,
+        features: createdDefaultUser.features,
         username: "alteredUsername",
         created_at: patchResponseBody.created_at,
         updated_at: patchResponseBody.updated_at,

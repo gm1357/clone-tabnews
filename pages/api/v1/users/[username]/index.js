@@ -44,5 +44,11 @@ async function patchHandler(req, res) {
 
   const updatedUser = await user.update(username, userInputValues);
 
-  return res.status(200).json(updatedUser);
+  const secureOutputValues = authorization.filterOutput(
+    userTryingToPatch,
+    "read:user",
+    updatedUser,
+  );
+
+  return res.status(200).json(secureOutputValues);
 }

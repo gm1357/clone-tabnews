@@ -16,14 +16,14 @@ function can(user, feature, resource) {
   return authorized;
 }
 
-function filterOutput(user, feature, output) {
+function filterOutput(user, feature, resource) {
   if (feature === "read:user") {
     return {
-      id: output.id,
-      username: output.username,
-      features: output.features,
-      created_at: output.created_at,
-      updated_at: output.updated_at,
+      id: resource.id,
+      username: resource.username,
+      features: resource.features,
+      created_at: resource.created_at,
+      updated_at: resource.updated_at,
     };
   }
 }
