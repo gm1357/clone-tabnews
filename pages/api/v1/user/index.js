@@ -2,6 +2,7 @@ import { createRouter } from "next-connect";
 import controller from "infra/controller";
 import user from "models/user.js";
 import session from "models/session";
+import authorization from "models/authorization";
 
 const router = createRouter();
 
@@ -12,6 +13,7 @@ router.get(controller.canRequest("read:session"), getHandler);
 export default router.handler(controller.errorHandlers);
 
 async function getHandler(req, res) {
+  const userTryingToGet = req.context.user;
   const sessionToken = req.cookies.session_id;
 
   const sessionObject = await session.findOneValidByToken(sessionToken);
@@ -21,5 +23,11 @@ async function getHandler(req, res) {
   controller.setSessionCookie(res, sessionObject.token);
   controller.forceIgnoreCache(res);
 
-  return res.status(200).json(userFound);
+  const secureOutputValues = authorization.filterOutput(
+    userTryingToGet,
+    "read:user:self",
+    userFound,
+  );
+
+  return res.status(200).json(secureOutputValues);
 }

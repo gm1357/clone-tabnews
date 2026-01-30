@@ -31,9 +31,8 @@ describe("POST /api/users", () => {
 
       expect(res.status).toBe(201);
       expect(responseBody).toEqual({
-        ...newUser,
+        username: newUser.username,
         id: responseBody.id,
-        password: responseBody.password,
         features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,

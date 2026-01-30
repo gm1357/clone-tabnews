@@ -35,9 +35,7 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(res.status).toBe(201);
     expect(createdUser).toEqual({
       username: TEST_USER_USERNAME,
-      email: TEST_USER_EMAIL,
       id: createdUser.id,
-      password: createdUser.password,
       features: ["read:activation_token"],
       created_at: createdUser.created_at,
       updated_at: createdUser.updated_at,
@@ -119,6 +117,7 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(res.status).toBe(200);
     expect(responseBody).toEqual({
       ...createdUser,
+      email: responseBody.email,
       features: ["create:session", "read:session", "update:user"],
       created_at: createdUser.created_at,
       updated_at: responseBody.updated_at,
