@@ -65,7 +65,7 @@ async function create(userId) {
 
 async function sendEmailToUser(user, activationToken) {
   await email.send({
-    from: "CloneTabNews <contact@clonetab.com>",
+    from: "CloneTabNews <contact@gmachado.dev.br>",
     to: user.email,
     subject: "Activate your account on Clone Tabnews!",
     text: `${user.username}, click on the link below to activate your account.
