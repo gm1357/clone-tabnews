@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker/.";
 import retry from "async-retry";
 import database from "infra/database";
+import activation from "models/activation";
 import { runPendingMigrations as migratorRunPendingMigrations } from "models/migrator";
 import session from "models/session";
 import user from "models/user";
@@ -53,9 +54,9 @@ async function runPendingMigrations() {
 async function createUser(userObject) {
   return await user.create({
     username:
-      userObject.username ?? faker.internet.username().replace(/[_.-]/g, ""),
-    email: userObject.email ?? faker.internet.email(),
-    password: userObject.password ?? "validPass",
+      userObject?.username ?? faker.internet.username().replace(/[_.-]/g, ""),
+    email: userObject?.email ?? faker.internet.email(),
+    password: userObject?.password ?? "validPass",
   });
 }
 
@@ -74,6 +75,10 @@ async function getLastEmail() {
   const emailList = await emailListRes.json();
   const lastEmailItem = emailList.pop();
 
+  if (!lastEmailItem) {
+    return null;
+  }
+
   const lastEmailTextRes = await fetch(
     `${EMAIL_HTTP_URL}/messages/${lastEmailItem.id}.plain`,
   );
@@ -85,6 +90,22 @@ async function getLastEmail() {
   };
 }
 
+function extractUUID4(text) {
+  const uuid4regex =
+    /[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/;
+  const token = text.match(uuid4regex);
+
+  return token?.[0] ?? null;
+}
+
+async function activateUser(user) {
+  return await activation.activateUserById(user.id);
+}
+
+async function addFeaturesToUser(userObject, features) {
+  return await user.addFeatures(userObject.id, features);
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -93,6 +114,9 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID4,
+  activateUser,
+  addFeaturesToUser,
 };
 
 export default orchestrator;
