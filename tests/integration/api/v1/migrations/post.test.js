@@ -1,3 +1,4 @@
+import webserver from "infra/webserver";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -9,7 +10,7 @@ beforeAll(async () => {
 describe("POST /api/migrations", () => {
   describe("Anonymous user", () => {
     test("Running pending migrations", async () => {
-      const res1 = await fetch("http://localhost:3000/api/v1/migrations", {
+      const res1 = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "POST",
       });
       expect(res1.status).toBe(403);
@@ -29,9 +30,9 @@ describe("POST /api/migrations", () => {
     test("Running pending migrations", async () => {
       const createdUser = await orchestrator.createUser();
       const activatedUser = await orchestrator.activateUser(createdUser);
-      const session = await orchestrator.createSession(activatedUser.id);
+      const session = await orchestrator.createSession(activatedUser);
 
-      const res = await fetch("http://localhost:3000/api/v1/migrations", {
+      const res = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "POST",
         headers: {
           Cookie: `session_id=${session.token}`,
@@ -55,9 +56,9 @@ describe("POST /api/migrations", () => {
       const createdUser = await orchestrator.createUser();
       const activatedUser = await orchestrator.activateUser(createdUser);
       await orchestrator.addFeaturesToUser(activatedUser, ["create:migration"]);
-      const session = await orchestrator.createSession(activatedUser.id);
+      const session = await orchestrator.createSession(activatedUser);
 
-      const res = await fetch("http://localhost:3000/api/v1/migrations", {
+      const res = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "POST",
         headers: {
           Cookie: `session_id=${session.token}`,

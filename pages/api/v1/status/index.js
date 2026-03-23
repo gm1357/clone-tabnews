@@ -3,13 +3,10 @@ import database from "infra/database.js";
 import controller from "infra/controller";
 import authorization from "models/authorization";
 
-const router = createRouter();
-
-router.use(controller.injectAnonymousOrUser);
-
-router.get(getHandler);
-
-export default router.handler(controller.errorHandlers);
+export default createRouter()
+  .use(controller.injectAnonymousOrUser)
+  .get(getHandler)
+  .handler(controller.errorHandlers);
 
 async function getHandler(req, res) {
   const userTryingToGet = req.context.user;
@@ -44,5 +41,5 @@ async function getHandler(req, res) {
     statusObject,
   );
 
-  res.status(200).json(secureOutputValues);
+  return res.status(200).json(secureOutputValues);
 }

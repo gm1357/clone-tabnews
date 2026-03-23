@@ -1,3 +1,4 @@
+import webserver from "infra/webserver";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -9,7 +10,7 @@ beforeAll(async () => {
 describe("GET /api/status", () => {
   describe("Anonymous user", () => {
     test("Retrieving current system status", async () => {
-      const res = await fetch("http://localhost:3000/api/v1/status");
+      const res = await fetch(`${webserver.origin}/api/v1/status`);
       const responseBody = await res.json();
 
       expect(res.status).toBe(200);
@@ -29,14 +30,38 @@ describe("GET /api/status", () => {
     });
   });
 
+  describe("Default user", () => {
+    test("Retrieving current system status", async () => {
+      const createdUser = await orchestrator.createUser();
+      const activatedUser = await orchestrator.activateUser(createdUser);
+      const sessionObject = await orchestrator.createSession(activatedUser);
+
+      const response = await fetch(`${webserver.origin}/api/v1/status`, {
+        headers: {
+          Cookie: `session_id=${sessionObject.token}`,
+        },
+      });
+      expect(response.status).toBe(200);
+
+      const responseBody = await response.json();
+
+      const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString();
+      expect(responseBody.updated_at).toEqual(parsedUpdatedAt);
+
+      expect(responseBody.dependencies.database.max_connections).toEqual(100);
+      expect(responseBody.dependencies.database.opened_connections).toEqual(1);
+      expect(responseBody.dependencies.database).not.toHaveProperty("version");
+    });
+  });
+
   describe("Privileged user", () => {
-    test("With 'read:status:all'", async () => {
+    test("With `read:status:all`", async () => {
       const createdUser = await orchestrator.createUser();
       const activatedUser = await orchestrator.activateUser(createdUser);
       await orchestrator.addFeaturesToUser(activatedUser, ["read:status:all"]);
-      const session = await orchestrator.createSession(activatedUser.id);
+      const session = await orchestrator.createSession(activatedUser);
 
-      const res = await fetch("http://localhost:3000/api/v1/status", {
+      const res = await fetch(`${webserver.origin}/api/v1/status`, {
         headers: {
           Cookie: `session_id=${session.token}`,
         },
