@@ -1,3 +1,4 @@
+import webserver from "infra/webserver";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -7,7 +8,7 @@ beforeAll(async () => {
 describe("POST /api/status", () => {
   describe("Anonymous user", () => {
     test("Trying a different HTTP method that is not allowed", async () => {
-      const res = await fetch("http://localhost:3000/api/v1/status", {
+      const res = await fetch(`${webserver.origin}/api/v1/status`, {
         method: "POST",
       });
       const responseBody = await res.json();

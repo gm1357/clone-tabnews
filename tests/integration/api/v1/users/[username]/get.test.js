@@ -1,3 +1,4 @@
+import webserver from "infra/webserver";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -17,7 +18,7 @@ describe("GET /api/users/[username]", () => {
         password: "pass123",
       });
 
-      const res = await fetch(`http://localhost:3000/api/v1/users/${username}`);
+      const res = await fetch(`${webserver.origin}/api/v1/users/${username}`);
       const responseBody = await res.json();
 
       expect(res.status).toBe(200);
@@ -40,7 +41,7 @@ describe("GET /api/users/[username]", () => {
       });
 
       const res = await fetch(
-        `http://localhost:3000/api/v1/users/${username.toLowerCase()}`,
+        `${webserver.origin}/api/v1/users/${username.toLowerCase()}`,
       );
       const responseBody = await res.json();
 
@@ -56,7 +57,7 @@ describe("GET /api/users/[username]", () => {
 
     test("With nonexistent username", async () => {
       const res = await fetch(
-        "http://localhost:3000/api/v1/users/NonexistentUser",
+        `${webserver.origin}/api/v1/users/NonexistentUser`,
       );
       const responseBody = await res.json();
 

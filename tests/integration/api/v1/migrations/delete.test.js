@@ -1,3 +1,4 @@
+import webserver from "infra/webserver";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -8,7 +9,7 @@ beforeAll(async () => {
 describe("DELETE /api/migrations", () => {
   describe("Anonymous user", () => {
     test("Trying a different HTTP method that is not allowed", async () => {
-      const res = await fetch("http://localhost:3000/api/v1/migrations", {
+      const res = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: "DELETE",
       });
       expect(res.status).toBe(405);
