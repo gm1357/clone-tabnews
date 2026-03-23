@@ -33,7 +33,7 @@ describe("GET /api/user", () => {
       });
       const activatedUser = await orchestrator.activateUser(createdUser);
 
-      const createdSession = await orchestrator.createSession(createdUser.id);
+      const createdSession = await orchestrator.createSession(createdUser);
 
       const res = await fetch(`${webserver.origin}/api/v1/user`, {
         headers: {
@@ -131,7 +131,7 @@ describe("GET /api/user", () => {
         username: "UserWithExpiredSession",
       });
 
-      const createdSession = await orchestrator.createSession(createdUser.id);
+      const createdSession = await orchestrator.createSession(createdUser);
 
       jest.useRealTimers();
 
