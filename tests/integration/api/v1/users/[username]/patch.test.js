@@ -325,7 +325,7 @@ describe("GET /api/users/[username]", () => {
   });
 
   describe("Privileged user", () => {
-    test("With 'update:user:others' feature targeting default user", async () => {
+    test("With `update:user:others` feature targeting default user", async () => {
       const createdDefaultUser = await orchestrator.createUser();
 
       const createdPrivilegedUser = await orchestrator.createUser({
