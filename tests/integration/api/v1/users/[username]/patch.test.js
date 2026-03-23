@@ -266,6 +266,10 @@ describe("GET /api/users/[username]", () => {
         Date.parse(patchResponseBody.updated_at) >
           Date.parse(createdUser.updated_at),
       ).toBe(true);
+
+      const userInDatabase = await user.findOneByUsername(createdUser.username);
+
+      expect(userInDatabase.email).toBe(`${createdUser.email}2`);
     });
 
     test("With new password", async () => {
